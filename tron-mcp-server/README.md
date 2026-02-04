@@ -31,13 +31,26 @@
 
 ## 快速开始
 
+### 环境要求
+
+- **Python**: 3.10 或更高版本
+- **操作系统**: Windows / macOS / Linux
+
 ### 1. 安装依赖
 
-```bash
+**Windows:**
+```powershell
 cd tron-mcp-server
 python -m venv .venv
-.
 .venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+**macOS / Linux:**
+```bash
+cd tron-mcp-server
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -64,21 +77,32 @@ python -m tron_mcp_server.server --sse
 
 默认监听 `http://127.0.0.1:8765/sse`，可通过环境变量 `MCP_PORT` 修改端口。
 
+> ⚠️ **端口占用**：如果 8765 端口被占用，可设置 `MCP_PORT=8766` 或其他可用端口。
+
 ### 4. 客户端配置
 
-**Cursor / 其他 SSE 客户端**（mcp.json 或 settings）：
+**Cursor (SSE 模式)**
 
-```json
-{
-  "mcpServers": {
-    "tron": {
-      "url": "http://127.0.0.1:8765/sse"
-    }
-  }
-}
-```
+1. 打开 Cursor Settings -> Features -> MCP Servers
+2. 点击 + Add New MCP Server
+3. 配置如下：
+   - **Name**: `tron`
+   - **Type**: `sse`
+   - **URL**: `http://127.0.0.1:8765/sse`
 
-**Claude Desktop / stdio 客户端**：
+**Cursor (Stdio 模式，自动管理进程)**
+
+1. 同上打开 MCP Servers 设置
+2. 配置如下：
+   - **Name**: `tron`
+   - **Type**: `command`
+   - **Command**: 
+     - Windows: `cmd /c "cd /d C:\path\to\tron-mcp-server && ..\.venv\Scripts\python.exe -m tron_mcp_server.server"`
+     - macOS/Linux: `cd /path/to/tron-mcp-server && ../.venv/bin/python -m tron_mcp_server.server`
+
+**Claude Desktop (stdio 模式)**
+
+编辑 `claude_desktop_config.json`：
 
 ```json
 {
@@ -133,7 +157,7 @@ tron-mcp-server/
 │   ├── validators.py     # 参数校验
 │   ├── formatters.py     # 输出格式化
 │   └── config.py         # 配置管理
-├── tests/                # 测试用例（36 个测试）
+├── .tests/               # 测试用例（隐藏目录）
 ├── requirements.txt      # 依赖
 └── .env.example          # 环境变量示例
 ```
@@ -143,7 +167,7 @@ tron-mcp-server/
 ### 运行测试
 
 ```bash
-python -m pytest tests/ -v
+python -m pytest .tests/ -v
 ```
 
 ### 测试覆盖
@@ -160,7 +184,7 @@ python -m pytest tests/ -v
 
 - **USDT 合约**: `TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t` (TRC20, 6 位小数)
 - **API**: TRONSCAN REST
-- **主要接口**: account, chain/parameters, transaction-info, block
+- **主要接口**: account, chainparameters, transaction-info, block
 - **传输协议**: stdio（默认）/ SSE（`--sse` 启动）
 - **默认端口**: 8765（SSE 模式，可通过 `MCP_PORT` 环境变量修改）
 
