@@ -168,8 +168,13 @@ def get_gas_parameters() -> int:
     """
     获取当前网络 Gas 价格 (SUN)
     """
-    data = _get("chain/parameters")
-    params = data.get("chainParameter") or data.get("chainParameters") or data
+    data = _get("chainparameters")
+    params = (
+        data.get("tronParameters")
+        or data.get("chainParameter")
+        or data.get("chainParameters")
+        or data
+    )
     if not isinstance(params, list):
         raise ValueError("TRONSCAN 响应缺少 chainParameter")
 

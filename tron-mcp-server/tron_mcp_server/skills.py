@@ -1,47 +1,51 @@
 """Skills 清单模块 - 渐进式披露核心"""
 
+# 技能清单常量 - 供 call_router 使用
+SKILLS = [
+    {
+        "action": "get_usdt_balance",
+        "desc": "查询 USDT (TRC20) 余额",
+        "params": {"address": "TRON 地址 (Base58 或 Hex)"},
+    },
+    {
+        "action": "get_gas_parameters",
+        "desc": "获取当前网络 Gas 参数 (SUN)",
+        "params": {},
+    },
+    {
+        "action": "get_transaction_status",
+        "desc": "检查交易确认状态",
+        "params": {"txid": "64 位交易哈希"},
+    },
+    {
+        "action": "get_balance",
+        "desc": "查询 TRX (原生代币) 余额",
+        "params": {"address": "TRON 地址"},
+    },
+    {
+        "action": "get_network_status",
+        "desc": "查看网络最新区块高度",
+        "params": {},
+    },
+    {
+        "action": "build_tx",
+        "desc": "构建未签名转账交易",
+        "params": {
+            "from": "发送方地址",
+            "to": "接收方地址",
+            "amount": "转账数量 (数字)",
+            "token": "TRX 或 USDT",
+        },
+    },
+]
+
 
 def get_skills() -> dict:
-    """返回本服务支持的技能清单"""
+    """返回补全的技能清单响应"""
     return {
         "server": "tron-mcp-server",
-        "version": "1.0.0",
-        "usage": "调用 call(action='xxx', params={...})",
-        "skills": [
-            {
-                "action": "get_usdt_balance",
-                "desc": "查USDT余额",
-                "params": {"address": "TRON地址"},
-            },
-            {
-                "action": "get_gas_parameters",
-                "desc": "查Gas参数",
-                "params": {},
-            },
-            {
-                "action": "get_transaction_status",
-                "desc": "查交易状态",
-                "params": {"txid": "交易哈希"},
-            },
-            {
-                "action": "get_balance",
-                "desc": "查TRX余额",
-                "params": {"address": "TRON地址"},
-            },
-            {
-                "action": "get_network_status",
-                "desc": "查网络状态",
-                "params": {},
-            },
-            {
-                "action": "build_tx",
-                "desc": "生成未签名交易",
-                "params": {
-                    "from": "发送地址",
-                    "to": "接收地址",
-                    "amount": "数量",
-                    "token": "TRX|USDT",
-                },
-            },
-        ],
+        "version": "1.0.1",
+        "usage": "通过 call(action='xxx', params={...}) 调用",
+        "skills": SKILLS,
+        "summary": f"已加载 TRON 区块链技能列表，包含 {len(SKILLS)} 个可用动作。",
     }

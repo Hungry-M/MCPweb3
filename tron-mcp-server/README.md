@@ -50,8 +50,46 @@ cp .env.example .env
 
 ### 3. 运行 MCP Server
 
+**方式一：stdio 模式（默认，用于 Claude Desktop 等）**
+
 ```bash
 python -m tron_mcp_server.server
+```
+
+**方式二：SSE 模式（HTTP 端口，用于 Cursor 等）**
+
+```bash
+python -m tron_mcp_server.server --sse
+```
+
+默认监听 `http://127.0.0.1:8765/sse`，可通过环境变量 `MCP_PORT` 修改端口。
+
+### 4. 客户端配置
+
+**Cursor / 其他 SSE 客户端**（mcp.json 或 settings）：
+
+```json
+{
+  "mcpServers": {
+    "tron": {
+      "url": "http://127.0.0.1:8765/sse"
+    }
+  }
+}
+```
+
+**Claude Desktop / stdio 客户端**：
+
+```json
+{
+  "mcpServers": {
+    "tron": {
+      "command": "python",
+      "args": ["-m", "tron_mcp_server.server"],
+      "cwd": "/path/to/tron-mcp-server"
+    }
+  }
+}
 ```
 
 ## MCP 工具列表
@@ -123,6 +161,8 @@ python -m pytest tests/ -v
 - **USDT 合约**: `TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t` (TRC20, 6 位小数)
 - **API**: TRONSCAN REST
 - **主要接口**: account, chain/parameters, transaction-info, block
+- **传输协议**: stdio（默认）/ SSE（`--sse` 启动）
+- **默认端口**: 8765（SSE 模式，可通过 `MCP_PORT` 环境变量修改）
 
 ## 许可证
 

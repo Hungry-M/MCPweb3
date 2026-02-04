@@ -1,65 +1,48 @@
-# PRD：构建基于 TRON 网络的 MCP 服务器（任务C）
+# PRD：TRON MCP Server（更新版）
 
 ## 1. 项目背景
-任务要求：构建基于 TRON 网络的 MCP 服务器，将 TRONSCAN 或 TRONGRID 的链上数据接口封装为符合 Model Context Protocol 标准的工具，使 AI Agent 能直接查询账户余额、网络状态等链上信息。核心是标准接口封装与复杂链上数据向自然语言的可读性转换。
+构建面向 AI Agent 的 TRON 区块链 MCP 服务器，将 TRONSCAN REST API 封装为 MCP 工具。系统需提供结构化输出与中文摘要，便于 AI 直接面向用户交互。
 
 ## 2. 目标
-- 提供符合 MCP 标准的工具接口，基于 TRONSCAN 或 TRONGRID 获取链上数据。
-- 让 AI 能直接调用工具查询链上信息，并返回结构化结果 + 可读摘要。
-- 支持必要的鉴权/配置（如 API Key）。
+- 通过 MCP 工具提供 TRON 余额、网络状态、交易状态、Gas 参数、未签名交易构建能力。
+- 输出结构化字段与可读摘要。
+- 支持环境变量配置与鉴权（TRONSCAN API Key）。
 
-## 3. 需求范围
-### 3.1 必须支持（MVP）
-- 账户余额查询
-- 网络状态查询（如链高/节点状态）
+## 3. 功能范围（当前版本）
+### 3.1 必须支持
+- `tron_get_usdt_balance(address)`：USDT 余额查询
+- `tron_get_balance(address)`：TRX 余额查询
+- `tron_get_gas_parameters()`：Gas/能量价格参数
+- `tron_get_transaction_status(txid)`：交易状态查询（含 pending）
+- `tron_get_network_status()`：最新区块高度
+- `tron_build_tx(from_address, to_address, amount, token=USDT|TRX)`：构建未签名交易
 
-### 3.2 可选扩展
-- 交易详情查询
-- 账户详情查询（资源/能量/带宽）
-- 区块详情查询
+### 3.2 兼容入口
+- `call(action, params)`：单入口路由，支持 `skills` 返回技能清单
 
-## 4. 功能需求
-- MCP 服务器暴露工具（名称可调整但需清晰易懂）：
-  - `get_balance(address)`
-  - `get_network_status()`
-  - 可选：`get_transaction(txid)`、`get_account_info(address)`、`get_block(height)`
-- 工具内部通过 TRONSCAN 或 TRONGRID API 访问链上数据。
-- 输出内容包含：
-  - 结构化字段（方便 AI 解析）
-  - 自然语言摘要（可直接面向用户展示）
+## 4. 数据与输出规范
+- 余额单位：
+  - TRX/SUN 转换（1 TRX = 1,000,000 SUN）
+  - USDT 使用 6 位小数
+- 交易状态输出：`status`（成功/失败/pending）、`success`、`block_number`、`confirmations`
+- 统一错误格式：`error` + `summary`
 
-## 5. 数据可读性转换要求
-- 统一单位与格式（如 TRX 与 SUN 的转换）。
-- 关键字段摘要化，避免直接抛出复杂原始 JSON。
-- 出错时提供明确、可读的错误描述。
+## 5. 地址与参数校验
+- 地址支持 Base58（T 开头 34 位）或 Hex（0x41 开头 44 位）
+- txid 支持 64 位 hex（可带 0x 前缀）
+- 金额必须为正数
 
-## 6. 非功能需求
-- 可维护性：清晰的模块化结构（server / client / formatter / config）。
-- 稳定性：包含超时与错误处理。
-- 可扩展性：便于新增 TRONSCAN/TRONGRID 接口。
+## 6. 技术实现要求
+- 访问 TRONSCAN REST API（account、transaction-info、chain/parameters、block）
+- 支持超时与异常处理
+- 结构化输出与摘要由 formatter 层统一生成
 
-## 7. 技术方案概述
-- 基于 MCP Python SDK 实现 MCP server。
-- 使用 HTTP 客户端调用 TRONSCAN 或 TRONGRID API。
-- 统一 formatter 层实现自然语言摘要与结构化输出。
+## 7. 非功能需求
+- 可维护性：模块化结构（client / validators / formatters / router / server）
+- 稳定性：异常可读、超时可控
+- 可扩展性：易于新增链上查询工具
 
 ## 8. 验收标准
-- AI 通过 MCP 工具调用可返回 TRON 链上数据。
-- 返回结果包含结构化字段与自然语言摘要。
-- 对错误/异常具备清晰提示。
-
-## 9. 里程碑与任务拆分
-- 阶段 M1：框架搭建（1 天）
-  - 基于 MCP Python SDK 创建 server 骨架，注册示例工具占位。
-  - 配置管理：读取 TRON API Key、网络环境。
-  - 基础错误处理与日志框架落地。
-- 阶段 M2：TRON 客户端与核心工具（1-2 天）
-  - 封装 TRONSCAN/TRONGRID HTTP 客户端（鉴权、超时、重试）。
-  - 实现 `get_balance`、`get_network_status`；完成单位转换与最小摘要。
-- 阶段 M3：可选扩展与格式化（1 天）
-  - 可选工具：`get_transaction`、`get_account_info`、`get_block`。
-  - 统一 formatter：结构化字段 + 自然语言摘要，错误文案统一。
-- 阶段 M4：测试与验收（0.5-1 天）
-  - 针对主要工具的单测/集成测试（使用固定地址、txid 样例）。
-  - 文档补全：README、使用示例、配置说明。
-  - 验收对照第 8 节标准。
+- 所有核心工具可被 MCP 正常调用
+- 返回结果包含结构化字段与中文摘要
+- 错误场景有明确可读提示

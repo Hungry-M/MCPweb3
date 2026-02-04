@@ -4,6 +4,28 @@
 
 ---
 
+## 2026-02-04
+
+### 缺陷修复
+- **TRON 客户端修复**：
+  - 修复 `get_gas_parameters` 接口路径：将错误的 `chain/parameters` 修正为有效的 `chainparameters`。
+  - 修复数据解析逻辑：适配 TRONSCAN API 返回的 `tronParameters` 根键，解决了无法获取能量费用（Gas）参数的问题。
+- **技能同步**：
+  - 根据 `tron-mcp-server` 的最新动作名称和参数，更新了 `tron-blockchain-skill/SKILL.md`，确保 AI Agent 能准确调用 `call(action, params)`。
+
+### 项目优化
+- **环境隐藏**：将其余测试代码文件夹 `tests` 重命名为 `.tests` 以进行平衡隐藏，减少开发环境视觉干扰。
+- **Git 忽略配置**：
+  - 新增 `.gitignore` 文件。
+  - 将项目管理相关文件（`Tasks/`, `PRD.md`, `Questions*.md`, `*-Report.md` 等）设为忽略，防止非生产代码上传至 GitHub 仓库。
+- **SSE 服务部署验证**：
+  - 在服务器上验证了 SSE 模式运行，修正了端口占用的问题，成功在 `http://127.0.0.1:8766/sse` 启动。
+- **技能逻辑统一**：
+  - 更新 `skills.py` 模块，新增版本号并结构化技能清单。
+  - 统一 `call_router.py` 的技能分发逻辑，支持更完整的“渐进式披露”。
+
+---
+
 ## 2026-02-03
 
 ### 里程碑

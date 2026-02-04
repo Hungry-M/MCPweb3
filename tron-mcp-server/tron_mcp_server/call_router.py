@@ -9,10 +9,7 @@ from . import formatters
 
 def _get_skills() -> dict:
     """获取技能列表（可被测试 mock）"""
-    return {
-        "skills": skills_module.SKILLS,
-        "summary": "已加载 TRON 区块链技能列表，包含 6 个可用动作。",
-    }
+    return skills_module.get_skills()
 
 
 def _get_gas_parameters() -> dict:

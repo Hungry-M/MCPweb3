@@ -126,8 +126,27 @@ def call(action: str, params: dict = None) -> dict:
 
 
 def main():
-    """启动 MCP Server"""
-    mcp.run()
+    """启动 MCP Server（支持 stdio 和 SSE 模式）"""
+    import sys
+    import os
+
+    # 默认端口（可通过环境变量覆盖）
+    port = int(os.getenv("MCP_PORT", "8765"))
+
+    # 检查命令行参数
+    if len(sys.argv) > 1 and sys.argv[1] == "--sse":
+        # SSE 模式：用 uvicorn 启动 HTTP 服务
+        try:
+            import uvicorn
+        except ImportError:
+            print("❌ SSE 模式需要安装 uvicorn: pip install uvicorn")
+            sys.exit(1)
+        print(f"🚀 TRON MCP Server (SSE) 启动在 http://127.0.0.1:{port}/sse")
+        app = mcp.sse_app()
+        uvicorn.run(app, host="127.0.0.1", port=port, log_level="info")
+    else:
+        # 默认 stdio 模式
+        mcp.run()
 
 
 if __name__ == "__main__":
