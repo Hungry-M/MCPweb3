@@ -1,5 +1,6 @@
 """交易构建模块 - 构造未签名交易"""
 
+import logging
 import os
 import time
 import hashlib
@@ -7,6 +8,9 @@ import base58
 from . import tron_client
 from . import validators
 
+
+# SUN 与 TRX 的转换倍数 (1 TRX = 1,000,000 SUN)
+SUN_PER_TRX = 1_000_000
 
 # USDT TRC20 合约地址
 # Default to Mainnet if not set
@@ -74,7 +78,7 @@ def _trigger_smart_contract(to: str, amount: float, from_addr: str, token: str) 
     """构建 TRC20 转账交易"""
     timestamp = _timestamp_ms()
     ref_block_bytes, ref_block_hash = _get_ref_block()
-    amount_raw = int(amount * 1_000_000)
+    amount_raw = int(amount * SUN_PER_TRX)
     
     raw_data = {
         "contract": [
@@ -104,7 +108,7 @@ def _build_trx_transfer(from_addr: str, to_addr: str, amount: float) -> dict:
     """构建 TRX 原生转账交易"""
     timestamp = _timestamp_ms()
     ref_block_bytes, ref_block_hash = _get_ref_block()
-    amount_sun = int(amount * 1_000_000)
+    amount_sun = int(amount * SUN_PER_TRX)
     
     raw_data = {
         "contract": [
@@ -175,15 +179,13 @@ def check_sender_balance(
     Raises:
         InsufficientBalanceError: 余额明确不足时抛出，阻止交易构建
     """
-    import logging
-    
     token_upper = token.upper()
     errors = []
     
     try:
         # 获取发送方 TRX 余额
         trx_balance = tron_client.get_balance_trx(from_address)
-        trx_balance_sun = int(trx_balance * 1_000_000)
+        trx_balance_sun = int(trx_balance * SUN_PER_TRX)
     except Exception as e:
         logging.warning(f"检查发送方 TRX 余额失败 ({from_address}): {e}")
         # 如果无法查询余额，不阻止交易（保守策略）
@@ -221,7 +223,7 @@ def check_sender_balance(
         
         # 检查 TRX 是否足够支付 Gas（Energy 费用）
         estimated_fee_sun = ESTIMATED_USDT_ENERGY * ENERGY_PRICE_SUN
-        estimated_fee_trx = estimated_fee_sun / 1_000_000
+        estimated_fee_trx = estimated_fee_sun / SUN_PER_TRX
         
         if trx_balance_sun < estimated_fee_sun:
             errors.append({
@@ -240,15 +242,14 @@ def check_sender_balance(
     
     else:
         # TRX 转账检查
-        amount_sun = int(amount * 1_000_000)
+        amount_sun = int(amount * SUN_PER_TRX)
         # TRX 转账需要的总金额 = 转账金额 + Gas 费用
         total_required_sun = amount_sun + MIN_TRX_TRANSFER_FEE
-        total_required_trx = total_required_sun / 1_000_000
         
         if trx_balance_sun < total_required_sun:
             errors.append({
                 "code": "insufficient_trx",
-                "message": f"TRX 余额不足: 需要 {amount} TRX + {MIN_TRX_TRANSFER_FEE / 1_000_000:.2f} TRX (Gas)，当前余额 {trx_balance:.6f} TRX",
+                "message": f"TRX 余额不足: 需要 {amount} TRX + {MIN_TRX_TRANSFER_FEE / SUN_PER_TRX:.2f} TRX (Gas)，当前余额 {trx_balance:.6f} TRX",
                 "severity": "error",
                 "required_sun": total_required_sun,
                 "available_sun": trx_balance_sun,
@@ -297,7 +298,6 @@ def check_recipient_status(to_address: str) -> dict:
         account_status = tron_client.get_account_status(to_address)
     except Exception as e:
         # 如果查询失败，记录错误信息并返回未知状态，不阻止交易
-        import logging
         logging.warning(f"检查接收方账户状态失败 ({to_address}): {e}")
         return {
             "checked": False,
