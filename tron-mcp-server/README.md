@@ -1,6 +1,11 @@
 # TRON MCP Server
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+
 为 AI Agent 提供 TRON 区块链操作能力的 MCP Server，遵循 MCP 最佳实践。
+
+> 📖 完整文档请查看根目录的 [README.md](../README.md)
 
 ## 架构
 
@@ -187,6 +192,14 @@ python -m pytest .tests/ -v
 - **主要接口**: account, chainparameters, transaction-info, block
 - **传输协议**: stdio（默认）/ SSE（`--sse` 启动）
 - **默认端口**: 8765（SSE 模式，可通过 `MCP_PORT` 环境变量修改）
+
+## 常见问题
+
+参见根目录 [README.md](../README.md#常见问题-faq) 中的完整 FAQ 部分。
+
+## 贡献
+
+欢迎贡献！请查看根目录的 [贡献指南](../README.md#贡献指南)。
 
 ## 许可证
 
