@@ -257,25 +257,31 @@ def check_account_risk(address: str) -> dict:
         data = response.json()
         
         # --- Layer 1: Deep Semantic Scan (Metadata Analysis) ---
-        # Extract all potential risk indicators
-        red_tag = str(data.get("redTag", "")).lower()
+        # Extract all potential risk indicators (handle None values properly)
+        red_tag = (data.get("redTag") or "").lower()
         
-        reputation = data.get("reputation", {})
-        rep_tag = str(reputation.get("tag", "")).lower()
-        explanation = str(reputation.get("explanation", "")).lower()
+        reputation = data.get("reputation") or {}
+        rep_tag = (reputation.get("tag") or "").lower()
+        explanation = (reputation.get("explanation") or "").lower()
         
-        # Combine all descriptions into one context string
+        # Combine all descriptions into one context string for risk analysis
         raw_info = f"RedTag:[{red_tag}] RepTag:[{rep_tag}] Note:[{explanation}]"
         
         # If ANY negative keyword appears in ANY field, flag it.
         is_semantic_risk = any(keyword in raw_info for keyword in RISK_KEYWORDS)
         
         if is_semantic_risk:
-            # Return the RAW info so the AI can explain it to the user
-            # e.g. "I found a 'suspicious' tag from 3 years ago..."
+            # Determine risk_type based on which field triggered the match
+            if red_tag:
+                risk_type = red_tag.capitalize()
+            elif rep_tag:
+                risk_type = rep_tag.capitalize()
+            else:
+                risk_type = "Suspicious Activity"
+            
             return {
                 "is_risky": True,
-                "risk_type": red_tag.capitalize() if red_tag else "Suspicious Activity",
+                "risk_type": risk_type,
                 "detail": "Security Alert: Address flagged in TRONSCAN database.",
                 "raw_info": raw_info  # AI Agent will read this to generate the warning
             }
