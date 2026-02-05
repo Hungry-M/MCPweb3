@@ -12,6 +12,9 @@ import base58
 USDT_CONTRACT_BASE58 = os.getenv("USDT_CONTRACT_ADDRESS", "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t")
 USDT_CONTRACT_HEX = os.getenv("USDT_CONTRACT_ADDRESS_HEX", "0x41a614f803b6fd780986a42c78ec9c7f77e6ded13c")
 
+# Extended Risk Keywords (Catch "Gray" and "Black" lists)
+RISK_KEYWORDS = ["scam", "phishing", "suspicious", "risk", "fraud", "hack", "unsafe", "ban", "gray"]
+
 # 默认 TRONSCAN API URL
 DEFAULT_API_URL = "https://apilist.tronscan.org/api"
 
@@ -231,8 +234,9 @@ def get_latest_block_info() -> dict:
 
 def check_account_risk(address: str) -> dict:
     """
-    Checks if a wallet address is flagged with a 'redTag' on TRONSCAN.
-    Source Endpoint: https://apilist.tronscanapi.com/api/multiple/chain/query
+    Deep Risk Scanning (Phase 3):
+    1. Full Metadata Scan: Checks redTag, reputation tag, and explanation text.
+    2. Permission Audit: Checks for Honeypot/Hijacked permissions.
     
     Args:
         address: TRON 地址 (Base58Check 格式)
@@ -240,32 +244,63 @@ def check_account_risk(address: str) -> dict:
     Returns:
         包含风险信息的字典:
         - is_risky: 地址是否被标记为恶意
-        - risk_type: 风险类型 (e.g. "Scam", "Phishing") 或 "Safe"/"Unknown"
-        - detail: 详细说明 (仅当 is_risky=True 时)
+        - risk_type: 风险类型 (e.g. "Scam", "Phishing", "Suspicious Activity") 或 "Safe"/"Check_Failed"
+        - detail: 详细说明
+        - raw_info: 原始风险数据 (用于 AI Agent 解释给用户)
     """
-    url = "https://apilist.tronscanapi.com/api/multiple/chain/query"
+    url = "https://apilist.tronscanapi.com/api/account"
     params = {"address": _normalize_address(address)}
     headers = _get_headers()
-    
+
     try:
         response = httpx.get(url, params=params, headers=headers, timeout=TIMEOUT)
         data = response.json()
         
-        # 核心判断逻辑
-        red_tag = data.get("redTag", "")
+        # --- Layer 1: Deep Semantic Scan (Metadata Analysis) ---
+        # Extract all potential risk indicators
+        red_tag = str(data.get("redTag", "")).lower()
         
-        if red_tag:
+        reputation = data.get("reputation", {})
+        rep_tag = str(reputation.get("tag", "")).lower()
+        explanation = str(reputation.get("explanation", "")).lower()
+        
+        # Combine all descriptions into one context string
+        raw_info = f"RedTag:[{red_tag}] RepTag:[{rep_tag}] Note:[{explanation}]"
+        
+        # If ANY negative keyword appears in ANY field, flag it.
+        is_semantic_risk = any(keyword in raw_info for keyword in RISK_KEYWORDS)
+        
+        if is_semantic_risk:
+            # Return the RAW info so the AI can explain it to the user
+            # e.g. "I found a 'suspicious' tag from 3 years ago..."
             return {
                 "is_risky": True,
-                "risk_type": red_tag,  # e.g. "Scam", "Phishing"
-                "detail": f"TRONSCAN flagged this address as {red_tag}",
+                "risk_type": red_tag.capitalize() if red_tag else "Suspicious Activity",
+                "detail": "Security Alert: Address flagged in TRONSCAN database.",
+                "raw_info": raw_info  # AI Agent will read this to generate the warning
             }
-        else:
-            return {"is_risky": False, "risk_type": "Safe"}
+
+        # --- Layer 2: Permission Audit (Anti-Honeypot) ---
+        owner_perm = data.get("ownerPermission")
+        if owner_perm and "keys" in owner_perm:
+            keys = owner_perm["keys"]
+            if len(keys) > 0:
+                controller = keys[0].get("address")
+                # Simple heuristic: If controller != address, it might be a honeypot
+                if controller and controller != _normalize_address(address):
+                    return {
+                        "is_risky": True,
+                        "risk_type": "Honeypot/Hijacked",
+                        "detail": f"Critical: Account control delegated to {controller}.",
+                        "raw_info": "Owner Permission Mismatch"
+                    }
+
+        return {"is_risky": False, "risk_type": "Safe", "detail": "Passed all security checks."}
             
     except Exception as e:
+        # Fail-safe: If API fails, Log it but don't block (or block, depending on policy)
         logging.warning(f"Risk check API failed: {e}")
-        return {"is_risky": False, "risk_type": "Unknown"}
+        return {"is_risky": False, "risk_type": "Check_Failed", "detail": str(e)}
 
 
 def get_account_status(address: str) -> dict:
