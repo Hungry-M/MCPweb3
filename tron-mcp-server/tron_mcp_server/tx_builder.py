@@ -389,7 +389,7 @@ def check_recipient_security(to_address: str) -> dict:
     Returns:
         包含安全检查结果的字典:
         - checked: 是否成功完成检查
-        - is_risky: 地址是否被标记为恶意
+        - is_risky: 地址是否被标记为恶意 (True=危险, False=安全, None=无法判断)
         - risk_type: 风险类型
         - security_warning: 高优先级安全警告 (仅当 is_risky=True)
     """
@@ -399,7 +399,7 @@ def check_recipient_security(to_address: str) -> dict:
         logger.warning(f"安全检查失败 ({to_address}): {e}")
         return {
             "checked": False,
-            "is_risky": False,
+            "is_risky": None,
             "risk_type": "Unknown",
             "security_warning": None,
             "degradation_warning": "⚠️ 安全检查服务不可用，无法验证接收方地址安全性，请谨慎操作",

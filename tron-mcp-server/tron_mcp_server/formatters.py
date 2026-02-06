@@ -149,11 +149,14 @@ def format_account_safety(address: str, risk_info: dict) -> dict:
     
     # 构建安全状态
     # 关键：risk_type 为 Unknown 或 Partially Verified 时，不能声称安全
-    is_unknown = risk_type in ("Unknown", "Partially Verified")
-    is_safe = not is_risky and not is_unknown
+    is_unknown = risk_type == "Unknown"
+    is_partially_verified = risk_type == "Partially Verified"
+    is_safe = not is_risky and not is_unknown and not is_partially_verified
     
     if is_unknown:
         safety_status = "无法验证"
+    elif is_partially_verified:
+        safety_status = "部分验证"
     elif is_safe:
         safety_status = "安全"
     else:
@@ -161,7 +164,9 @@ def format_account_safety(address: str, risk_info: dict) -> dict:
     
     # 构建摘要
     if is_unknown:
-        summary = f"地址 {address} 安全检查完成：⚠️ 无法获取风险信息，请谨慎操作。"
+        summary = f"地址 {address} 安全检查完成：⚠️ 无法验证: 安全检查服务不可用，请谨慎操作。"
+    elif is_partially_verified:
+        summary = f"地址 {address} 安全检查完成：⚠️ 部分验证: 仅部分安全检查通过，已检查数据未发现风险，但请注意部分检查不可用。"
     elif is_safe:
         if tags.get("Blue"):
             summary = f"地址 {address} 安全检查完成：✅ 地址安全，且为官方认证机构 ({tags['Blue']})。"
