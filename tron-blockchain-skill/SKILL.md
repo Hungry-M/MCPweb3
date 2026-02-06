@@ -16,6 +16,8 @@ description: 与 TRON 区块链交互的技能。通过 tron_* 系列工具直�
 ## 可用工具
 
 此技能通过 `tron-mcp-server` MCP 服务器提供以下工具：
+
+### 1. `tron_get_usdt_balance`
 查询指定地址的 USDT (TRC20) 余额。
 
 **参数:**
