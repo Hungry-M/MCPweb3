@@ -52,7 +52,16 @@ def _check_account_safety(addr: str) -> dict:
 
 def _build_unsigned_tx(from_addr: str, to_addr: str, amount: float, token: str = "USDT", force_execution: bool = False) -> dict:
     """构建未签名交易（可被测试 mock）"""
-    tx_result = tx_builder.build_unsigned_tx(from_addr, to_addr, amount, token, force_execution=force_execution)
+    tx_result = tx_builder.build_unsigned_tx(
+        from_address=from_addr,
+        to_address=to_addr,
+        amount=amount,
+        token=token,
+        check_recipient=True,
+        check_balance=True,
+        check_security=True,
+        force_execution=force_execution
+    )
     
     # 检查是否被熔断拦截
     if tx_result.get("blocked"):

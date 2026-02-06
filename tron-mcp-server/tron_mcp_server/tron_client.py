@@ -40,12 +40,17 @@ def _get_headers() -> dict:
 def _get(path: str, params: Optional[dict] = None) -> dict:
     """发送 GET 请求"""
     url = f"{_get_api_url()}/{path.lstrip('/')}"
-    response = httpx.get(url, params=params, headers=_get_headers(), timeout=TIMEOUT)
-    response.raise_for_status()
-    data = response.json()
-    if data is None:
-        raise ValueError("TRONSCAN 响应为空")
-    return data
+    try:
+        response = httpx.get(url, params=params, headers=_get_headers(), timeout=TIMEOUT)
+        response.raise_for_status()
+        data = response.json()
+        if data is None:
+            raise ValueError("TRONSCAN 响应为空")
+        return data
+    except httpx.TimeoutException as e:
+        raise TimeoutError(f"请求超时: {url}") from e
+    except httpx.HTTPStatusError as e:
+        raise ValueError(f"HTTP 错误 {e.response.status_code}: {url}") from e
 
 
 def _to_int(value) -> int:
@@ -297,9 +302,9 @@ def check_account_risk(address: str) -> dict:
     try:
         account_url = "https://apilist.tronscanapi.com/api/accountv2"
         response = httpx.get(account_url, params={"address": normalized_addr}, headers=headers, timeout=TIMEOUT)
-        data_v2 = response.json()
         
         if response.status_code == 200:
+            data_v2 = response.json()
             api_call_success = True
             red_tag = data_v2.get("redTag") or ""
             grey_tag = data_v2.get("greyTag") or ""
@@ -345,9 +350,9 @@ def check_account_risk(address: str) -> dict:
     try:
         security_url = "https://apilist.tronscanapi.com/api/security/account/data"
         response = httpx.get(security_url, params={"address": normalized_addr}, headers=headers, timeout=TIMEOUT)
-        data_sec = response.json()
         
         if response.status_code == 200:
+            data_sec = response.json()
             api_call_success = True
             is_black_list = bool(data_sec.get("is_black_list", False))
             has_fraud_transaction = bool(data_sec.get("has_fraud_transaction", False))
