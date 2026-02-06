@@ -739,7 +739,8 @@ class TestRecipientSecurityFallback(unittest.TestCase):
 
         result = check_recipient_security("TFakeAddr1234567890123456789012345")
         self.assertFalse(result["checked"], "API 失败时 checked 应为 False")
-        self.assertFalse(result["is_risky"])
+        # 修复后: is_risky 应为 None，而非 False
+        self.assertIsNone(result["is_risky"], "API 失败时 is_risky 应为 None，表示无法判断")
         # 修复后: 应包含降级警告
         self.assertIn("degradation_warning", result,
                        "API 失败时应包含 degradation_warning 字段")
@@ -856,6 +857,113 @@ class TestFormatterSafety(unittest.TestCase):
         })
         self.assertTrue(result["is_risky"])
         self.assertIn("⛔", result["summary"])
+    
+    def test_format_with_partially_verified(self):
+        """risk_type='Partially Verified' 时应显示部分验证提示"""
+        result = formatters.format_account_safety("TAddr1234567890123456789012345678", {
+            "is_risky": False,
+            "risk_type": "Partially Verified",
+            "risk_reasons": [],
+            "tags": {},
+        })
+        self.assertEqual(result["safety_status"], "部分验证")
+        self.assertIn("部分验证", result["summary"])
+        self.assertIn("仅部分安全检查通过", result["summary"])
+        self.assertFalse(result["is_safe"], "Partially Verified 不应被标记为 is_safe=True")
+
+
+class TestCheckRecipientSecurityNoneHandling(unittest.TestCase):
+    """
+    新增测试: check_recipient_security 返回 is_risky=None 时的处理
+    
+    当安全检查整体抛异常（而非内部 API 失败并优雅降级）时，
+    应返回 is_risky=None，而不是 is_risky=False。
+    """
+
+    @patch('tron_mcp_server.tron_client.check_account_risk')
+    def test_exception_returns_is_risky_none(self, mock_risk):
+        """当 check_account_risk 整体抛异常时，应返回 is_risky=None"""
+        mock_risk.side_effect = Exception("Network timeout")
+        
+        result = check_recipient_security("TFakeAddr1234567890123456789012345")
+        
+        # 关键修复点：is_risky 应为 None，而非 False
+        self.assertIsNone(result["is_risky"], 
+                         "异常时 is_risky 应为 None，表示无法判断，而非 False")
+        self.assertFalse(result["checked"])
+        self.assertEqual(result["risk_type"], "Unknown")
+        self.assertIn("degradation_warning", result)
+    
+    @patch('tron_mcp_server.tron_client.get_latest_block_info')
+    @patch('tron_mcp_server.tx_builder.check_recipient_security')
+    def test_build_unsigned_tx_with_is_risky_none(self, mock_security, mock_block):
+        """build_unsigned_tx 应正确处理 is_risky=None（不触发熔断，但附带警告）"""
+        # 模拟区块信息
+        mock_block.return_value = {
+            "number": 12345678,
+            "hash": "0123456789abcdef" * 4
+        }
+        
+        # 模拟安全检查返回 is_risky=None
+        mock_security.return_value = {
+            "checked": False,
+            "is_risky": None,
+            "risk_type": "Unknown",
+            "security_warning": None,
+            "degradation_warning": "⚠️ 安全检查服务不可用，无法验证接收方地址安全性，请谨慎操作",
+        }
+        
+        # 应该成功构建交易（不触发熔断）
+        result = build_unsigned_tx(
+            from_address="TMuA6YqfCeX8EhbfYEg5y7S4DqzSJireY9",
+            to_address="TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+            amount=10.0,
+            token="USDT",
+            check_balance=False,  # 跳过余额检查以简化测试
+            check_recipient=False,  # 跳过接收方状态检查
+            check_security=True,
+        )
+        
+        # 验证交易成功构建
+        self.assertNotIn("blocked", result, "is_risky=None 不应触发熔断")
+        self.assertIn("raw_data", result, "应成功构建交易")
+        
+        # 验证降级警告被附加到结果中
+        self.assertIn("degradation_warning", result)
+        self.assertIn("安全检查服务不可用", result["degradation_warning"])
+    
+    @patch('tron_mcp_server.tron_client.get_latest_block_info')
+    @patch('tron_mcp_server.tx_builder.check_recipient_security')
+    def test_build_unsigned_tx_is_risky_none_no_circuit_break(self, mock_security, mock_block):
+        """is_risky=None 不应触发熔断机制"""
+        # 模拟区块信息
+        mock_block.return_value = {
+            "number": 12345678,
+            "hash": "0123456789abcdef" * 4
+        }
+        
+        mock_security.return_value = {
+            "checked": False,
+            "is_risky": None,  # 无法判断
+            "risk_type": "Unknown",
+            "security_warning": None,
+            "degradation_warning": "⚠️ 安全检查服务不可用",
+        }
+        
+        result = build_unsigned_tx(
+            from_address="TMuA6YqfCeX8EhbfYEg5y7S4DqzSJireY9",
+            to_address="TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+            amount=10.0,
+            token="USDT",
+            check_balance=False,
+            check_recipient=False,
+            check_security=True,
+            force_execution=False,  # 即使不强制执行，也不应熔断
+        )
+        
+        # is_risky=None 时不应触发熔断（与 is_risky=True 不同）
+        self.assertNotIn("blocked", result)
+        self.assertFalse(result.get("blocked", False))
 
 
 class TestCheckAccountSafetyEndToEnd(unittest.TestCase):
