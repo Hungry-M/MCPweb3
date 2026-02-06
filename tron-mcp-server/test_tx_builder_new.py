@@ -123,8 +123,8 @@ class TestTxBuilder(unittest.TestCase):
         # 验证 data 字段中的金额编码正确
         # 10 USDT = 10 * 10^6 = 10_000_000 raw units
         data_hex = result["raw_data"]["contract"][0]["parameter"]["value"]["data"]
-        # data 格式: method_sig(8) + address(64) + amount(64)
-        amount_hex = data_hex[72:]  # 最后 64 字符是金额
+        # data 格式: method_sig(4 bytes = 8 hex) + address(32 bytes = 64 hex) + amount(32 bytes = 64 hex)
+        amount_hex = data_hex[72:]  # 8 + 64 = 72 hex chars offset
         amount_raw = int(amount_hex, 16)
         self.assertEqual(amount_raw, 10_000_000)
 

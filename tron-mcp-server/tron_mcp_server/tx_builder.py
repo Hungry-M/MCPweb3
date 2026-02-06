@@ -108,7 +108,8 @@ def _trigger_smart_contract(to: str, amount: float, from_addr: str, token: str) 
         "timestamp": timestamp,
     }
     
-    # 注意: 此 txID 为预览近似值，实际签名使用 TronGrid API 返回的 txID
+    # 注意: 此 txID 仅用于预览标识，不用于签名。
+    # 真正的 txID 是 protobuf 序列化 raw_data 的 SHA256，由 TronGrid API 返回。
     tx_id = hashlib.sha256(str(raw_data).encode()).hexdigest()
     return {"txID": tx_id, "raw_data": raw_data}
 
@@ -140,7 +141,8 @@ def _build_trx_transfer(from_addr: str, to_addr: str, amount: float) -> dict:
         "timestamp": timestamp,
     }
     
-    # 注意: 此 txID 为预览近似值，实际签名使用 TronGrid API 返回的 txID
+    # 注意: 此 txID 仅用于预览标识，不用于签名。
+    # 真正的 txID 是 protobuf 序列化 raw_data 的 SHA256，由 TronGrid API 返回。
     tx_id = hashlib.sha256(str(raw_data).encode()).hexdigest()
     return {"txID": tx_id, "raw_data": raw_data}
 
