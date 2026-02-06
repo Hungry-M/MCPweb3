@@ -8,6 +8,7 @@
 
 from mcp.server.fastmcp import FastMCP
 from . import call_router
+from . import config  # 触发 load_dotenv()，确保 API Key 等环境变量被加载
 
 # 创建 MCP Server 实例
 mcp = FastMCP("tron-mcp-server")

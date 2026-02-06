@@ -146,14 +146,22 @@ def format_account_safety(address: str, risk_info: dict) -> dict:
         tag_info.append(f"📋 公共标签: {tags['Public']}")
     
     # 构建安全状态
-    is_safe = not is_risky
-    safety_status = "安全" if is_safe else f"危险（{risk_type}）"
+    # 关键：risk_type 为 Unknown 或 Partially Verified 时，不能声称安全
+    is_unknown = risk_type in ("Unknown", "Partially Verified")
+    is_safe = not is_risky and not is_unknown
+    
+    if is_unknown:
+        safety_status = "无法验证"
+    elif is_safe:
+        safety_status = "安全"
+    else:
+        safety_status = f"危险（{risk_type}）"
     
     # 构建摘要
-    if is_safe:
-        if risk_type == "Unknown":
-            summary = f"地址 {address} 安全检查完成：⚠️ 无法获取风险信息，请谨慎操作。"
-        elif tags.get("Blue"):
+    if is_unknown:
+        summary = f"地址 {address} 安全检查完成：⚠️ 无法获取风险信息，请谨慎操作。"
+    elif is_safe:
+        if tags.get("Blue"):
             summary = f"地址 {address} 安全检查完成：✅ 地址安全，且为官方认证机构 ({tags['Blue']})。"
         else:
             summary = f"地址 {address} 安全检查完成：✅ 未在已知风险数据库中发现该地址。"

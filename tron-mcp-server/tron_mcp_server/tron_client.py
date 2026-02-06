@@ -33,7 +33,8 @@ def _get_headers() -> dict:
     headers = {"Accept": "application/json"}
     api_key = os.getenv("TRONSCAN_API_KEY", "")
     if api_key:
-        headers["TRONSCAN-API-KEY"] = api_key
+        # TRONSCAN API 要求使用 TRON-PRO-API-KEY 作为 header 名称
+        headers["TRON-PRO-API-KEY"] = api_key
     return headers
 
 

@@ -644,32 +644,37 @@ class TestFeeEstimation(unittest.TestCase):
         self.assertEqual(USDT_BANDWIDTH_BYTES, 350, "USDT 带宽消耗应为 350 字节")
         self.assertEqual(BANDWIDTH_PRICE_SUN, 1000, "带宽单价应为 1000 SUN")
         
-        # 计算修复后的预估手续费: energy - 免费带宽抵扣
+        # 计算修复后的预估手续费:
+        # 能量费 = 65000 * 420 = 27,300,000 SUN (27.3 TRX)
+        # 带宽费 = max(0, (350 - min(350,600)) * 1000) = 0 SUN (免费带宽覆盖)
+        # 总计 = 27,300,000 + 0 = 27,300,000 SUN (27.3 TRX)
         energy_fee = ESTIMATED_USDT_ENERGY * ENERGY_PRICE_SUN  # 27,300,000 SUN
-        free_bw_savings = min(USDT_BANDWIDTH_BYTES, FREE_BANDWIDTH_DAILY) * BANDWIDTH_PRICE_SUN  # 350,000 SUN
-        estimated_fee_sun = energy_fee - free_bw_savings  # 26,950,000 SUN
-        expected_fee_trx = estimated_fee_sun / SUN_PER_TRX  # 26.95 TRX
-        self.assertAlmostEqual(expected_fee_trx, 26.95, places=2,
-                               msg=f"修复后预估 USDT 手续费应约 26.95 TRX，实际 {expected_fee_trx}")
+        free_bw_coverage = min(USDT_BANDWIDTH_BYTES, FREE_BANDWIDTH_DAILY)  # 350
+        actual_bw_fee = max(0, (USDT_BANDWIDTH_BYTES - free_bw_coverage) * BANDWIDTH_PRICE_SUN)  # 0 SUN
+        estimated_fee_sun = energy_fee + actual_bw_fee  # 27,300,000 SUN
+        expected_fee_trx = estimated_fee_sun / SUN_PER_TRX  # 27.3 TRX
+        self.assertAlmostEqual(expected_fee_trx, 27.3, places=2,
+                               msg=f"USDT 手续费 = 能量费 27.3 TRX + 带宽费 0 TRX (免费覆盖)，实际 {expected_fee_trx}")
 
     @patch('tron_mcp_server.tron_client.get_balance_trx')
     @patch('tron_mcp_server.tron_client.get_usdt_balance')
     def test_borderline_trx_balance_for_usdt_transfer(self, mock_usdt, mock_trx):
         """
-        边界测试: 用户有 26.95 TRX（修复后阈值），应允许交易
+        边界测试: 用户有 27.3 TRX（阈值），应允许交易
+        免费带宽仅抵扣带宽费（=0），能量费 27.3 TRX 不变
         """
         mock_usdt.return_value = 100.0
-        mock_trx.return_value = 26.95  # 刚好等于修复后的阈值
+        mock_trx.return_value = 27.3  # 刚好等于能量费阈值
 
         result = check_sender_balance("TAddr1234567890123456789012345678", 10.0, "USDT")
-        self.assertTrue(result["sufficient"], "26.95 TRX 刚好够修复后的 Gas 阈值，应通过")
+        self.assertTrue(result["sufficient"], "27.3 TRX 刚好够 Gas 阈值，应通过")
 
     @patch('tron_mcp_server.tron_client.get_balance_trx')
     @patch('tron_mcp_server.tron_client.get_usdt_balance')
     def test_slightly_below_gas_threshold(self, mock_usdt, mock_trx):
-        """边界测试: 用户有 26.94 TRX（低于修复后阈值 26.95），应拒绝"""
+        """边界测试: 用户有 27.29 TRX（低于阈值 27.3），应拒绝"""
         mock_usdt.return_value = 100.0
-        mock_trx.return_value = 26.94  # 差一点
+        mock_trx.return_value = 27.29  # 差一点
 
         with self.assertRaises(InsufficientBalanceError):
             check_sender_balance("TAddr1234567890123456789012345678", 10.0, "USDT")
@@ -678,21 +683,21 @@ class TestFeeEstimation(unittest.TestCase):
     @patch('tron_mcp_server.tron_client.get_usdt_balance')
     def test_free_bandwidth_not_deducted(self, mock_usdt, mock_trx):
         """
-        修复验证: 免费 600 带宽已参与计算
+        修复验证: 免费带宽只抵扣带宽费，不减能量费
         
         在 TRON 网络中，每个地址有 600 免费带宽/天。
-        USDT 转账带宽消耗约 350 bytes。
-        免费带宽可节省 350 * 1000 SUN = 0.35 TRX。
+        USDT 转账带宽消耗约 350 bytes < 600 → 带宽费 = 0。
+        但能量费 65000 * 420 = 27.3 TRX 不变。
         
-        修复后阈值: 27.3 - 0.35 = 26.95 TRX
-        用户有 26.96 TRX → 应该被允许通过
+        总阈值: 27.3 TRX (能量) + 0 TRX (带宽，被免费额度覆盖)
+        用户有 27.31 TRX → 应该被允许通过
         """
         mock_usdt.return_value = 100.0
-        mock_trx.return_value = 26.96
+        mock_trx.return_value = 27.31
 
-        # 修复后: 26.96 TRX >= 26.95 TRX 阈值，应该通过
+        # 27.31 TRX > 27.3 TRX 阈值，应该通过
         result = check_sender_balance("TAddr1234567890123456789012345678", 10.0, "USDT")
-        self.assertTrue(result["sufficient"], "26.96 TRX 在免费带宽抵扣后应该够用")
+        self.assertTrue(result["sufficient"], "27.31 TRX 在免费带宽覆盖带宽费后应该够用")
 
     @patch('tron_mcp_server.tron_client.get_balance_trx')
     def test_trx_transfer_fee_calculation(self, mock_trx):
