@@ -144,8 +144,8 @@ python -m tron_mcp_server.server --sse
 
 ## 技术细节
 
-- **USDT 合约**: `TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t` (TRC20, 6 位小数)
-- **API**: TRONSCAN REST
+- **USDT 合约**: `TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf` (Nile 测试网 TRC20, 6 位小数)
+- **API**: TRONSCAN REST (Nile 测试网)
 - **主要接口**: account, chainparameters, transaction-info, block
 - **传输协议**: stdio（默认）/ SSE（`--sse` 启动）
 - **默认端口**: 8765（SSE 模式，可通过 `MCP_PORT` 环境变量修改）
