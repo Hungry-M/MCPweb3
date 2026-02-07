@@ -6,8 +6,8 @@ from . import tron_client
 from . import validators
 
 
-# USDT TRC20 合约地址
-USDT_CONTRACT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+# USDT TRC20 合约地址 (Nile 测试网)
+USDT_CONTRACT = "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf"
 
 
 def _timestamp_ms() -> int:

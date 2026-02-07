@@ -33,7 +33,7 @@ description: 与 TRON 区块链交互的技能。通过 tron-mcp-server 的 call
 
 **参数:**
 - `address` (必填): TRON 地址，支持两种格式：
-  - Base58: 以 `T` 开头，34 字符（如 `TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t`）
+  - Base58: 以 `T` 开头，34 字符（如 `TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf`）
   - Hex: 以 `0x41` 开头，44 字符
 
 **返回:**
@@ -44,7 +44,7 @@ description: 与 TRON 区块链交互的技能。通过 tron-mcp-server 的 call
 
 **示例:**
 ```
-查询 TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t 的 USDT 余额
+查询 TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf 的 USDT 余额
 → 返回: "地址 TR7N... 当前 USDT 余额为 1,234.567890 USDT。"
 ```
 
@@ -108,7 +108,7 @@ description: 与 TRON 区块链交互的技能。通过 tron-mcp-server 的 call
 
 **返回:**
 - `latest_block`: 最新区块高度
-- `chain`: 链名称 (TRON Mainnet)
+- `chain`: 链名称 (TRON Nile Testnet)
 - `summary`: 人类可读的摘要
 
 ---
@@ -146,10 +146,10 @@ description: 与 TRON 区块链交互的技能。通过 tron-mcp-server 的 call
 ### 查询余额
 
 ```
-用户: "查一下这个地址有多少 USDT: TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+用户: "查一下这个地址有多少 USDT: TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf"
 
 步骤:
-1. 调用 get_usdt_balance(address="TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t")
+1. 调用 get_usdt_balance(address="TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf")
 2. 返回余额信息给用户
 ```
 
@@ -212,7 +212,7 @@ description: 与 TRON 区块链交互的技能。通过 tron-mcp-server 的 call
 
 ## 技术细节
 
-- **USDT 合约**: `TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t` (TRC20, 6 位小数)
+- **USDT 合约**: `TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf` (Nile 测试网 TRC20, 6 位小数)
 - **精度**: USDT 和 TRX 均使用 6 位小数
-- **API**: 通过 TRONSCAN REST API 与 TRON 网络通信
+- **API**: 通过 TRONSCAN REST API 与 TRON Nile 测试网通信
 - **接口来源**: account, transaction-info, chain/parameters, block
