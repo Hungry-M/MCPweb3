@@ -45,7 +45,7 @@ description: 与 TRON 区块链交互的技能。通过 tron-mcp-server 的 call
 **示例:**
 ```
 查询 TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf 的 USDT 余额
-→ 返回: "地址 TR7N... 当前 USDT 余额为 1,234.567890 USDT。"
+→ 返回: "地址 TXYZ... 当前 USDT 余额为 1,234.567890 USDT。"
 ```
 
 ---
