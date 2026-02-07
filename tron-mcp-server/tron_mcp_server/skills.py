@@ -103,6 +103,15 @@ SKILLS = [
         "desc": "列出地址簿中所有联系人",
         "params": {},
     },
+    {
+        "action": "generate_qrcode",
+        "desc": "将钱包地址生成 QR Code 二维码图片保存到本地",
+        "params": {
+            "address": "TRON 钱包地址",
+            "output_dir": "输出目录（可选）",
+            "filename": "自定义文件名（可选）",
+        },
+    },
 ]
 
 

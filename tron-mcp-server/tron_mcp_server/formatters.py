@@ -649,3 +649,28 @@ def format_addressbook_list(result: dict) -> dict:
             lines.append(f"  • {c['alias']} → {c['address']}{note_text}")
         summary = "\n".join(lines)
     return {**result, "summary": summary}
+
+
+# ============ QR Code 格式化 ============
+
+def format_qrcode_result(result: dict) -> dict:
+    """格式化 QR Code 生成结果"""
+    address = result["address"]
+    file_path = result["file_path"]
+    file_size = result.get("file_size", 0)
+
+    # 友好的文件大小显示
+    if file_size >= 1024:
+        size_text = f"{file_size / 1024:.1f} KB"
+    else:
+        size_text = f"{file_size} Bytes"
+
+    summary = (
+        f"📱 已成功生成钱包地址二维码！\n"
+        f"地址: {address}\n"
+        f"文件: {file_path}\n"
+        f"大小: {size_text}\n"
+        f"其他人可以扫描此二维码获取你的钱包地址。"
+    )
+    return {**result, "summary": summary}
+
