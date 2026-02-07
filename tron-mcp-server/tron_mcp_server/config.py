@@ -24,7 +24,7 @@ _NETWORK_PRESETS = {
         "TRONSCAN_API_URL": "https://nileapi.tronscan.org/api",
         "TRONGRID_API_URL": "https://nile.trongrid.io",
         "USDT_CONTRACT_ADDRESS": "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf",
-        "USDT_CONTRACT_ADDRESS_HEX": "41a614f803b6fd780986a42c78ec9c7f77e6ded13c",
+        "USDT_CONTRACT_ADDRESS_HEX": "41eca9bc828a3005b9a3b909f2cc5c2a54794de05f",
     },
 }
 
