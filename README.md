@@ -121,6 +121,15 @@ cp .env.example .env
 # - TRON_PRIVATE_KEY: 签名/广播交易时必需
 ```
 
+```bash
+copy .env.example .env
+# 编辑 .env 文件，按需配置：
+# - TRON_NETWORK: 选择网络（mainnet 或 nile），默认 mainnet
+# - TRONGRID_API_KEY: TronGrid API 密钥（推荐配置）
+# - TRONSCAN_API_KEY: 提高 API 限额（推荐）
+# - TRON_PRIVATE_KEY: 签名/广播交易时必需
+```
+
 ### 3. 运行 MCP Server
 
 **方式一：stdio 模式（默认，用于 Claude Desktop 等）**
