@@ -19,6 +19,31 @@ import platform
 from pathlib import Path
 
 
+def detect_python_command():
+    """自动检测可用的 Python 命令"""
+    # 尝试常见的 Python 命令
+    python_commands = ['python', 'python3', 'py']
+    
+    for cmd in python_commands:
+        try:
+            # 检查命令是否存在
+            result = subprocess.run(
+                f'"{cmd}" --version',
+                shell=True,
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            if result.returncode == 0:
+                return cmd
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            continue
+    
+    # 如果都没找到，返回默认的 python
+    print("  ⚠️  未检测到 python/python3/py 命令，将使用 'python'")
+    return 'python'
+
+
 def run_command(cmd, description, capture_output=False):
     """运行命令并显示进度"""
     print(f"  ⏳ {description}...")
@@ -63,10 +88,27 @@ def main():
     project_dir = Path(__file__).parent.resolve()
     venv_dir = project_dir / ".venv"
 
-    # Step 1: 检查 Python
-    print("📋 Step 1/4: 检查 Python 环境")
-    python_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
-    print(f"  ✅ Python {python_version}")
+    # Step 1: 检测 Python 命令
+    print("📋 Step 1/4: 检测 Python 环境")
+    python_cmd = detect_python_command()
+    print(f"  ✅ 使用命令: {python_cmd}")
+    
+    # 获取 Python 版本
+    try:
+        result = subprocess.run(
+            f'"{python_cmd}" --version',
+            shell=True,
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        python_version = result.stdout.strip() if result.stdout else result.stderr.strip()
+        print(f"  ✅ {python_version}")
+    except Exception as e:
+        print(f"  ❌ 无法获取 Python 版本: {e}")
+        sys.exit(1)
+    
+    # 检查 Python 版本是否 >= 3.10
     if sys.version_info < (3, 10):
         print("  ❌ 需要 Python 3.10 或更高版本")
         sys.exit(1)
@@ -77,7 +119,7 @@ def main():
     if venv_dir.exists():
         print(f"  ⏳ 虚拟环境已存在，跳过创建")
     else:
-        if not run_command(f'python -m venv "{venv_dir}"', "创建虚拟环境"):
+        if not run_command(f'"{python_cmd}" -m venv "{venv_dir}"', "创建虚拟环境"):
             sys.exit(1)
     print()
 

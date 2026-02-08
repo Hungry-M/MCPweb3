@@ -105,16 +105,18 @@ cd MCPweb3
 
 #### 步骤 1: 运行安装脚本
 
-```powershell
-# 在项目根目录运行
-python install.py
+```bash
+# 在项目根目录运行（根据系统选择命令）
+python install.py        # Windows / Linux（如果 python 指向 Python 3）
+# 或
+python3 install.py       # Linux / macOS（如果 python 指向 Python 2）
 ```
 
 或在 `tron-mcp-server` 子目录中运行：
 
-```powershell
+```bash
 cd tron-mcp-server
-python install.py
+python install.py        # 或 python3
 ```
 
 `install.py` 会自动完成：
@@ -160,7 +162,7 @@ tron-mcp-server\.venv\Scripts\tronmcp.exe onboard
 # 激活虚拟环境后
 tronmcp server
 # 或
-python -m tron_mcp_server.server
+python -m tron_mcp_server.server        # 或 python3
 ```
 
 **方式二：SSE 模式**（Cursor、Trae 等）
@@ -168,7 +170,7 @@ python -m tron_mcp_server.server
 ```bash
 tronmcp server --sse
 # 或
-python -m tron_mcp_server.server --sse
+python -m tron_mcp_server.server --sse  # 或 python3
 ```
 
 默认监听 `http://127.0.0.1:8765/sse`，可通过 `MCP_PORT` 环境变量修改端口。
@@ -316,38 +318,33 @@ docker run --env-file .env -p 8765:8765 tron-mcp-server --sse
 
 ```
 .
+├── install.py                       # 🚀 一键安装脚本（项目根目录）
+├── run_tests.py                     # 🧪 测试运行脚本（项目根目录）
+├── Changelog.md                     # 📋 项目级更新日志
+├── README.md                        # 📖 本文件（主文档）
 ├── tron-blockchain-skill/           # Agent Skill（知识层）
 │   ├── SKILL.md                     # AI 读取的技能说明
 │   └── LICENSE.txt
-├── tron-mcp-server/                 # MCP Server（执行层）
-│   ├── tron_mcp_server/             # Python 包
-│   │   ├── __init__.py              # 包入口
-│   │   ├── server.py                # MCP Server 入口（暴露 tron_* 工具）
-│   │   ├── call_router.py           # 调用路由器
-│   │   ├── skills.py                # 技能清单定义
-│   │   ├── tron_client.py           # TRONSCAN REST 客户端（查询）
-│   │   ├── trongrid_client.py       # TronGrid API 客户端（交易构建/广播）
-│   │   ├── tx_builder.py            # 交易构建器（含安全检查）
-│   │   ├── key_manager.py           # 本地私钥管理（签名/地址派生）
-│   │   ├── address_book.py          # 地址簿管理（别名↔地址映射）
-│   │   ├── validators.py            # 参数校验
-│   │   ├── formatters.py            # 输出格式化
-│   │   └── config.py                # 配置管理（网络切换/API 预设）
-│   ├── Dockerfile                   # Docker 容器化配置
-│   ├── .dockerignore                # Docker 构建排除规则
-│   ├── test_known_issues.py         # 已知问题测试
-│   ├── test_transfer_flow.py        # 转账流程测试
-│   ├── test_tx_builder_new.py       # 交易构建测试
-│   ├── test_transaction_history.py  # 交易历史查询测试
-│   ├── test_address_book.py         # 地址簿模块测试
-│   ├── test_tron_client.py          # TRON 客户端集成测试
-│   ├── test_trongrid_client.py      # TronGrid 客户端集成测试
-│   ├── test_call_router_*.py        # 路由器集成测试
-│   ├── test_config_and_skills.py    # 配置与技能模块测试
-│   ├── requirements.txt             # 依赖
-│   └── .env.example                 # 环境变量示例
-├── Changelog.md                     # 更新日志
-└── README.md                        # 本文件
+└── tron-mcp-server/                 # MCP Server（执行层）
+    ├── tron_mcp_server/             # Python 包
+    │   ├── __init__.py              # 包入口
+    │   ├── server.py                # MCP Server 入口（暴露 tron_* 工具）
+    │   ├── call_router.py           # 调用路由器
+    │   ├── skills.py                # 技能清单定义
+    │   ├── tron_client.py           # TRONSCAN REST 客户端（查询）
+    │   ├── trongrid_client.py       # TronGrid API 客户端（交易构建/广播）
+    │   ├── tx_builder.py            # 交易构建器（含安全检查）
+    │   ├── key_manager.py           # 本地私钥管理（签名/地址派生）
+    │   ├── address_book.py          # 地址簿管理（别名↔地址映射）
+    │   ├── validators.py            # 参数校验
+    │   ├── formatters.py            # 输出格式化
+    │   └── config.py                # 配置管理（网络切换/API 预设）
+    ├── Changelog.md                 # MCP Server 层更新日志
+    ├── Dockerfile                   # Docker 容器化配置
+    ├── .dockerignore                # Docker 构建排除规则
+    ├── test_*.py                    # 测试文件（30+ 测试用例）
+    ├── requirements.txt             # 依赖
+    └── .env.example                 # 环境变量示例
 ```
 
 ## 技术细节
