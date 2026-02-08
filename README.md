@@ -121,7 +121,7 @@ cp .env.example .env
 # - TRON_PRIVATE_KEY: 签名/广播交易时必需
 ```
 
-```bash
+```windows cmd
 copy .env.example .env
 # 编辑 .env 文件，按需配置：
 # - TRON_NETWORK: 选择网络（mainnet 或 nile），默认 mainnet
