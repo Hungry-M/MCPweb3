@@ -47,29 +47,51 @@
 - **Python**: 3.10 或更高版本
 - **操作系统**: Windows / macOS / Linux
 
-### 1. 安装依赖
+### 1. 一键安装（推荐）
 
-**Windows:**
+使用 `install.py` 脚本，一行命令完成所有准备工作：
+
 ```powershell
 cd tron-mcp-server
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
+python install.py
 ```
 
-**macOS / Linux:**
+安装脚本会自动：
+- ✅ 创建虚拟环境 `.venv`
+- ✅ 安装所有依赖包
+- ✅ 注册 `tronmcp` 命令
+- ✅ 显示后续操作指引
+
+### 2. 一键配置
+
+使用交互式引导脚本 `tronmcp onboard` 完成所有配置：
+
 ```bash
-cd tron-mcp-server
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+# 激活虚拟环境后
+tronmcp onboard
 ```
 
-### 2. 配置环境变量
+引导流程包括：
+1. 🌐 选择网络（主网/测试网）
+2. 🔐 输入私钥（即时校验并派生地址）
+3. 🔑 配置 API Keys（TronGrid + TronScan + 连接性测试）
+4. 💾 保存配置到 `.env` 文件
+5. ⚙️ 自动添加 `tronmcp` 到 PATH（可选）
+6. 🚀 启动 MCP 服务器（可选）
+
+> 💡 **提示**：`onboard` 会帮你完成所有配置，无需手动编辑 `.env`。
+
+### 手动配置（可选）
+
+如果跳过 `onboard`，可手动创建 `.env` 文件：
 
 ```bash
 cp .env.example .env
-# 编辑 .env 文件，按需配置 TRONSCAN API
+# 编辑 .env 文件，填写以下配置：
+# - TRON_NETWORK: mainnet 或 nile
+# - TRON_PRIVATE_KEY: 64位十六进制私钥
+# - TRONGRID_API_KEY: 可选
+# - TRONSCAN_API_KEY: 可选
 ```
 
 ### 3. 运行 MCP Server
