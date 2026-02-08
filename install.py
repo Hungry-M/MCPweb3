@@ -87,6 +87,12 @@ def main():
 
     project_dir = Path(__file__).parent.resolve()
     venv_dir = project_dir / ".venv"
+    # 如果 pyproject.toml 不在根目录，尝试在 tron-mcp-server 子目录中查找
+    mcp_server_dir = project_dir / "tron-mcp-server"
+    if not (project_dir / "pyproject.toml").exists() and (mcp_server_dir / "pyproject.toml").exists():
+        install_dir = mcp_server_dir
+    else:
+        install_dir = project_dir
 
     # Step 1: 检测 Python 命令
     print("📋 Step 1/4: 检测 Python 环境")
@@ -135,7 +141,7 @@ def main():
         print("  ⚠️  pip 升级失败，继续安装...")
 
     # 安装项目（包含所有依赖）
-    if not run_command(f'{pip_cmd} install -e "{project_dir}"', "安装 tron-mcp-server", capture_output=True):
+    if not run_command(f'{pip_cmd} install -e "{install_dir}"', "安装 tron-mcp-server", capture_output=True):
         print("  ⚠️  安装失败，请检查错误信息")
         sys.exit(1)
     print()
@@ -148,17 +154,17 @@ def main():
     print()
     print("  1️⃣  激活虚拟环境并运行配置向导：")
     if platform.system() == "Windows":
-        print(f'     {project_dir}\\.venv\\Scripts\\Activate.ps1')
+        print(f'     {install_dir}\\.venv\\Scripts\\Activate.ps1')
         print(f'     tronmcp onboard')
     else:
-        print(f'     source {project_dir}/.venv/bin/activate')
+        print(f'     source {install_dir}/.venv/bin/activate')
         print(f'     tronmcp onboard')
     print()
     print("  2️⃣  或者直接运行（已自动配置）：")
     if platform.system() == "Windows":
-        print(f'     {project_dir}\\.venv\\Scripts\\tronmcp.exe onboard')
+        print(f'     {install_dir}\\.venv\\Scripts\\tronmcp.exe onboard')
     else:
-        print(f'     {project_dir}/.venv/bin/tronmcp onboard')
+        print(f'     {install_dir}/.venv/bin/tronmcp onboard')
     print()
     print("="*60)
     print()
