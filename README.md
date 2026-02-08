@@ -88,55 +88,108 @@
 - 🪙 **代币资产概览**：查询地址持有的所有代币列表（TRX + TRC20 + TRC10）
 - 🌐 **网络切换**：通过 `TRON_NETWORK` 环境变量一键切换主网/Nile 测试网，API 地址和合约地址自动适配
 
-## 快速开始
+## 🚀 快速开始
+
+### 🎯 一键安装配置（强烈推荐）
+
+我们提供了全新的**全自动安装配置流程**，让您在 2 分钟内完成所有准备工作：
+
+#### 步骤 1: 运行安装脚本
+
+```powershell
+cd tron-mcp-server
+python install.py
+```
+
+`install.py` 会自动完成：
+- ✅ **Python 环境检查**（需 3.10+）
+- ✅ **创建虚拟环境** `.venv`
+- ✅ **安装所有依赖**（包括 `mcp`, `httpx`, `rich`, `questionary` 等）
+- ✅ **注册 `tronmcp` 命令**到虚拟环境
+- ✅ **显示操作指引**（下一步该做什么）
+
+#### 步骤 2: 运行配置向导
+
+安装完成后，运行交互式配置向导：
+
+```bash
+# Windows PowerShell
+tron-mcp-server\.venv\Scripts\Activate.ps1
+tronmcp onboard
+
+# 或直接运行（无需手动激活）
+tron-mcp-server\.venv\Scripts\tronmcp.exe onboard
+```
+
+`onboard` 向导提供 **6 步引导**，像支付宝一样简单：
+
+| 步骤 | 操作 | 说明 |
+|------|------|------|
+| 1️⃣ | 🌐 **选择网络** | 主网（真实交易）或 Nile 测试网（开发调试） |
+| 2️⃣ | 🔐 **输入私钥** | 密码隐密输入，即时派生地址并校验 |
+| 3️⃣ | 🔑 **配置 API Keys** | TronGrid + TronScan（可选，带连接性测试） |
+| 4️⃣ | 💾 **保存配置** | 自动写入 `.env` 文件并设置安全权限 |
+| 5️⃣ | ⚙️ **添加到 PATH** | 可选，让 `tronmcp` 命令全局可用 |
+| 6️⃣ | 🚀 **启动服务器** | 可选，立即启动 MCP Server（Stdio/SSE） |
+
+> 💡 **提示**：`onboard` 会帮你完成所有配置，**无需手动编辑 `.env`**！
+
+#### 步骤 3: 启动 MCP Server
+
+配置完成后，根据你的客户端选择启动方式：
+
+**方式一：Stdio 模式**（Claude Desktop、Windsurf 等）
+
+```bash
+# 激活虚拟环境后
+tronmcp server
+# 或
+python -m tron_mcp_server.server
+```
+
+**方式二：SSE 模式**（Cursor、Trae 等）
+
+```bash
+tronmcp server --sse
+# 或
+python -m tron_mcp_server.server --sse
+```
+
+默认监听 `http://127.0.0.1:8765/sse`，可通过 `MCP_PORT` 环境变量修改端口。
+
+---
+
+### ⚙️ 手动配置（可选）
+
+如果跳过 `onboard`，可手动创建 `.env` 文件：
+
+```bash
+# Windows
+copy .env.example .env
+
+# macOS/Linux
+cp .env.example .env
+```
+
+编辑 `.env`，填写以下配置：
+```bash
+TRON_NETWORK=mainnet          # 或 nile（测试网）
+TRON_PRIVATE_KEY=your_private_key_here  # 64位十六进制
+TRONGRID_API_KEY=your_key     # 可选
+TRONSCAN_API_KEY=your_key     # 可选
+```
+
+---
 
 ### 环境要求
 
 - **Python**: 3.10 或更高版本
 - **操作系统**: Windows / macOS / Linux
+- **网络**: 可访问 TRON 主网/测试网
 
-### 1. 安装依赖
+---
 
-**Windows:**
-```powershell
-cd tron-mcp-server
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-**macOS / Linux:**
-```bash
-cd tron-mcp-server
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-### 2. 配置环境变量
-
-**Windows:**
-```bash
-copy .env.example .env
-# 编辑 .env 文件，按需配置：
-# - TRON_NETWORK: 选择网络（mainnet 或 nile），默认 mainnet
-# - TRONGRID_API_KEY: TronGrid API 密钥（推荐配置）
-# - TRONSCAN_API_KEY: 提高 API 限额（推荐）
-# - TRON_PRIVATE_KEY: 签名/广播交易时必需
-```
-
-**macOS / Linux:**
-```bash
-cp .env.example .env
-# 编辑 .env 文件，按需配置：
-# - TRON_NETWORK: 选择网络（mainnet 或 nile），默认 mainnet
-# - TRONGRID_API_KEY: TronGrid API 密钥（推荐配置）
-# - TRONSCAN_API_KEY: 提高 API 限额（推荐）
-# - TRON_PRIVATE_KEY: 签名/广播交易时必需
-```
-
-
-### 3. 运行 MCP Server
+### 运行 MCP Server
 
 **方式一：stdio 模式（默认，用于 Claude Desktop 等）**
 
